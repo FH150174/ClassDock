@@ -31,6 +31,6 @@ export interface CalendarSnapshot {
   calendars: CalendarInfo[];
   selectedCalendarId: string;
   lastSyncTime: string;
-  source: "mock" | "google";
+  source: "mock" | "google" | "local";
 }
 export type SyncState = "idle" | "syncing" | "error";

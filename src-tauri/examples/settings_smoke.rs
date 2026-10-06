@@ -75,7 +75,7 @@ fn main() {
                         "#).map_err(|e| e.to_string())?;
                         let text = render_rx.recv_timeout(Duration::from_secs(10))
                             .map_err(|e| format!("第 {round} 次 React 设置页未渲染：{e}"))?;
-                        if !text.contains("让课表，适合你") || !text.contains("始终置顶") || !text.contains(env!("CARGO_PKG_VERSION")) {
+                        if !text.contains("让课表，适合你") || !text.contains("课程来源") || !text.contains("选择课程文件") || !text.contains("始终置顶") || !text.contains(env!("CARGO_PKG_VERSION")) {
                             return Err(format!("第 {round} 次设置内容不完整：{text}"));
                         }
                         // 已打开时再次调用必须复用窗口，不能创建重复窗口。

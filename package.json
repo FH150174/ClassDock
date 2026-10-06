@@ -1,7 +1,7 @@
 {
   "name": "classdock",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -15,8 +15,10 @@
   },
   "dependencies": {
     "@tauri-apps/api": "^2.10.0",
+    "ical.js": "^2.2.1",
     "lucide-react": "^0.577.0",
     "luxon": "^3.7.2",
+    "papaparse": "^5.7.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "zustand": "^5.0.11"
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2.10.0",
     "@types/luxon": "^3.7.1",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.1.0",

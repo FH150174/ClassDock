@@ -1,3 +1,8 @@
+import {
+  useLocalCalendarStore,
+  LOCAL_CALENDAR_KEY,
+} from "./stores/localCalendarStore";
+import { useCalendarStore } from "./stores/calendarStore";
 import { useEffect, useState } from "react";
 import { useSettingsStore } from "./stores/settingsStore";
 import { applyWindowSettings } from "./services/desktopService";
@@ -40,7 +45,11 @@ export default function App() {
   }, [settings.alwaysOnTop]);
   useEffect(() => {
     const update = (event: StorageEvent) => {
-      if (event.key === "classdock-settings")
+      if (event.key === LOCAL_CALENDAR_KEY || event.key === null) {
+        useLocalCalendarStore.getState().reload();
+        void useCalendarStore.getState().refresh();
+      }
+      if (event.key === "classdock-settings" || event.key === null)
         void useSettingsStore.persist.rehydrate();
     };
     window.addEventListener("storage", update);

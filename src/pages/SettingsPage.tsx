@@ -1,3 +1,5 @@
+import { CourseSources } from "../components/CourseSources";
+import { version } from "../../package.json";
 import {
   ArrowLeft,
   Check,
@@ -36,6 +38,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
           <h1>让课表，适合你</h1>
         </div>
       </header>
+      <CourseSources />
       <section className="settings-section">
         <h2>外观</h2>
         <label className="setting-label">主题</label>
@@ -95,9 +98,10 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
         <div className="connection-note">
           <CalendarDays size={22} />
           <div>
-            <strong>当前为示例模式</strong>
+            <strong>Google 同步待接入</strong>
             <p>
-              Google 登录与日历同步将在下一阶段接入。示例课程不来自你的账户。
+              现在可导入本地 ICS、CSV 或手动添加课程；Google
+              登录与同步将在后续接入。
             </p>
           </div>
         </div>
@@ -111,7 +115,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
         </a>
       </section>
       <p className="settings-footnote">
-        ClassDock 0.1.2 · 第一阶段预览
+        ClassDock {version} · 本地课程版
         <br />
         开机启动、自动同步与提醒尚未启用。
       </p>

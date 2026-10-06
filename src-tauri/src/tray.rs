@@ -7,7 +7,7 @@ use tauri::{
 
 pub fn setup(app: &App) -> tauri::Result<()> {
     let open = MenuItem::with_id(app, "open", "打开课程表", true, None::<&str>)?;
-    let refresh = MenuItem::with_id(app, "refresh", "重新加载示例课程", true, None::<&str>)?;
+    let refresh = MenuItem::with_id(app, "refresh", "重新加载课程", true, None::<&str>)?;
     let today = MenuItem::with_id(app, "today", "今日课程", true, None::<&str>)?;
     let week = MenuItem::with_id(app, "week", "本周课程", true, None::<&str>)?;
     let settings = MenuItem::with_id(app, "settings", "设置", true, None::<&str>)?;

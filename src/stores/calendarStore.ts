@@ -17,8 +17,12 @@ export const useCalendarStore = create<CalendarState>((set, get) => ({
     set({ syncState: "syncing", error: null });
     try {
       set({ snapshot: await calendarService.load(), syncState: "idle" });
-    } catch {
-      set({ syncState: "error", error: "课程加载失败，请重试。" });
+    } catch (error) {
+      set({
+        syncState: "error",
+        error:
+          error instanceof Error ? error.message : "课程加载失败，请重试。",
+      });
     }
   },
 }));

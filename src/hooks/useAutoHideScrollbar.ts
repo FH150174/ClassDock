@@ -7,7 +7,7 @@ export function useAutoHideScrollbar(
   useEffect(() => {
     const element = ref.current;
     if (!element || !enabled) return;
-    let hideTimer: ReturnType<typeof window.setTimeout> | undefined;
+    let hideTimer: number | undefined;
     const onScroll = () => {
       element.classList.add("is-scrolling");
       window.clearTimeout(hideTimer);

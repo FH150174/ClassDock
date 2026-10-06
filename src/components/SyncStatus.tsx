@@ -7,14 +7,18 @@ export function SyncStatus() {
     <footer className="sync-footer">
       <span>
         <Database size={12} aria-hidden="true" />
-        {snapshot?.source === "mock"
-          ? "示例课程 · 未连接 Google"
-          : "Google Calendar"}
+        {!snapshot
+          ? "课程尚未加载"
+          : snapshot.source === "mock"
+            ? "示例课程 · 未连接 Google"
+            : snapshot?.source === "local"
+              ? "自定义课程 · 本地保存"
+              : "Google Calendar"}
       </span>
       <button
         onClick={() => void refresh()}
         disabled={syncState === "syncing"}
-        title="重新加载示例课程"
+        title="重新加载课程"
       >
         <RefreshCw
           size={12}

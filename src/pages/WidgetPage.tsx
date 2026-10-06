@@ -99,7 +99,7 @@ export function WidgetPage() {
             className="icon-button"
             onClick={() => void refresh()}
             disabled={syncState === "syncing"}
-            aria-label="重新加载示例课程"
+            aria-label="重新加载课程"
           >
             <RefreshCw
               size={14}
