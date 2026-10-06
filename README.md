@@ -68,7 +68,7 @@ npm run tauri build
 产物：
 
 - `src-tauri/target/release/classdock.exe`：应用程序，可直接启动；需要系统 WebView2。
-- `src-tauri/target/release/bundle/nsis/ClassDock_0.1.1_x64-setup.exe`：中文 NSIS 安装程序。
+- `src-tauri/target/release/bundle/nsis/ClassDock_0.1.2_x64-setup.exe`：中文 NSIS 安装程序。
 
 无需安装包时：`npm run tauri build -- --no-bundle`。发布构建去掉控制台，优化体积；本版未配置代码签名。安装程序按 Tauri 默认机制处理缺失的 WebView2。代码和资源都在本地，生产前端无外部字体请求。
 
@@ -155,4 +155,4 @@ docs/               运行与验收记录
 
 ## 验收边界
 
-本轮验收：原生 `tauri dev`、前端生产构建、时间测试、Windows exe 构建、Mock 今日/下一节/本周与基础桌面行为。全量最终验收中的真实 OAuth、真实日历选择、真实事件、离线缓存与周期同步需下一阶段完成；不能用示例成功代替真实账户验证。具体执行证据见 [第一轮验收](docs/VALIDATION.md) 和 [0.1.1 窗口与滚动修复](docs/FIXES-0.1.1.md)。
+本轮验收：原生 `tauri dev`、前端生产构建、时间测试、Windows exe 构建、Mock 今日/下一节/本周与基础桌面行为。全量最终验收中的真实 OAuth、真实日历选择、真实事件、离线缓存与周期同步需下一阶段完成；不能用示例成功代替真实账户验证。具体执行证据见 [第一轮验收](docs/VALIDATION.md) 和 [0.1.1 窗口与滚动修复](docs/FIXES-0.1.1.md)、[0.1.2 设置窗口修复](docs/FIXES-0.1.2.md)。

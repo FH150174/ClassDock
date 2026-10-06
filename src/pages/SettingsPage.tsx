@@ -111,7 +111,7 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
         </a>
       </section>
       <p className="settings-footnote">
-        ClassDock 0.1.1 · 第一阶段预览
+        ClassDock 0.1.2 · 第一阶段预览
         <br />
         开机启动、自动同步与提醒尚未启用。
       </p>

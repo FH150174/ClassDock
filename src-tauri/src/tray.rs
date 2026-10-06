@@ -27,8 +27,16 @@ pub fn setup(app: &App) -> tauri::Result<()> {
                     app.exit(0);
                     Ok(())
                 }
-                "settings" => window::open_settings(app.clone())
-                    .map_err(|e| tauri::Error::Anyhow(std::io::Error::other(e).into())),
+                "settings" => {
+                    let handle = app.clone();
+                    // 托盘回调及时返回，让主线程继续处理 WebView 创建与关闭消息。
+                    tauri::async_runtime::spawn(async move {
+                        if let Err(error) = window::open_settings(handle).await {
+                            eprintln!("无法打开设置窗口：{error}");
+                        }
+                    });
+                    Ok(())
+                }
                 "refresh" | "today" | "week" => window::show_widget(app)
                     .and_then(|_| app.emit("widget-action", event.id.as_ref())),
                 _ => window::show_widget(app),

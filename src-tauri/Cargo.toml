@@ -1,6 +1,6 @@
 [package]
 name = "classdock"
-version = "0.1.1"
+version = "0.1.2"
 description = "Windows 桌面课程表 Widget"
 edition = "2021"
 rust-version = "1.90"
