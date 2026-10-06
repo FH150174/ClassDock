@@ -1,0 +1,13 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "widget-windows",
+  "description": "仅允许本地课程表窗口使用必要窗口操作",
+  "windows": ["main", "settings"],
+  "permissions": [
+    "core:event:default",
+    "core:window:allow-start-dragging",
+    "core:window:allow-internal-toggle-maximize",
+    "core:window:allow-hide",
+    "core:window:allow-set-size"
+  ]
+}
