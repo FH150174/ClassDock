@@ -1,14 +1,7 @@
+import { GoogleSources } from "../components/GoogleSources";
 import { CourseSources } from "../components/CourseSources";
 import { version } from "../../package.json";
-import {
-  ArrowLeft,
-  Check,
-  ExternalLink,
-  Monitor,
-  Moon,
-  Sun,
-  CalendarDays,
-} from "lucide-react";
+import { ArrowLeft, Check, Monitor, Moon, Sun } from "lucide-react";
 import { useSettingsStore } from "../stores/settingsStore";
 import type { Theme } from "../types/settings";
 
@@ -93,31 +86,11 @@ export function SettingsPage({ onBack }: { onBack?: () => void }) {
           />
         </label>
       </section>
-      <section className="settings-section">
-        <h2>Google Calendar</h2>
-        <div className="connection-note">
-          <CalendarDays size={22} />
-          <div>
-            <strong>Google 同步待接入</strong>
-            <p>
-              现在可导入本地 ICS、CSV 或手动添加课程；Google
-              登录与同步将在后续接入。
-            </p>
-          </div>
-        </div>
-        <a
-          className="docs-link"
-          href="https://developers.google.com/identity/protocols/oauth2/native-app"
-          target="_blank"
-          rel="noreferrer"
-        >
-          桌面 OAuth 接入文档 <ExternalLink size={13} />
-        </a>
-      </section>
+      <GoogleSources />
       <p className="settings-footnote">
-        ClassDock {version} · 本地课程版
+        ClassDock {version} · Google 与本地课程版
         <br />
-        开机启动、自动同步与提醒尚未启用。
+        开机启动与提醒尚未启用。
       </p>
     </main>
   );

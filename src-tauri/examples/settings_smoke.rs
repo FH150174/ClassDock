@@ -1,11 +1,13 @@
 //! Windows 设置窗口生命周期回归测试，独立于正式应用入口。
 use std::{
-    sync::{mpsc, Mutex},
+    sync::{mpsc, Arc, Mutex},
     thread,
     time::{Duration, Instant},
 };
 use tauri::{Manager, State};
 
+#[path = "../src/google.rs"]
+mod google;
 #[path = "../src/window.rs"]
 mod window;
 
@@ -35,6 +37,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             window::open_settings,
             window::set_widget_top,
+            google::google_status, google::google_configure, google::google_connect, google::google_cancel,
+            google::google_calendars, google::google_select, google::google_load, google::google_disconnect,
             report_settings
         ])
         .on_page_load(move |webview, payload| {
@@ -43,6 +47,9 @@ fn main() {
             }
         })
         .setup(move |app| {
+            let service = Arc::new(google::GoogleService::new(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.cache/smoke-google"))?);
+            google::start_sync(service.clone(), app.handle().clone());
+            app.manage(service);
             window::show_widget(app.handle())?;
             app.get_webview_window("main").unwrap().hide()?;
             let handle = app.handle().clone();
@@ -65,6 +72,8 @@ fn main() {
                                 const check = () => {
                                     const page = document.querySelector('.settings-page');
                                     if (page) {
+                                        const config = page.querySelector(".google-sources details");
+                                        if (config) config.open = true;
                                         window.__TAURI_INTERNALS__.invoke('report_settings', { text: page.innerText });
                                     } else if (++attempts < 100) {
                                         setTimeout(check, 50);
@@ -75,7 +84,7 @@ fn main() {
                         "#).map_err(|e| e.to_string())?;
                         let text = render_rx.recv_timeout(Duration::from_secs(10))
                             .map_err(|e| format!("第 {round} 次 React 设置页未渲染：{e}"))?;
-                        if !text.contains("让课表，适合你") || !text.contains("课程来源") || !text.contains("选择课程文件") || !text.contains("始终置顶") || !text.contains(env!("CARGO_PKG_VERSION")) {
+                        if !text.contains("让课表，适合你") || !text.contains("课程来源") || !text.contains("选择课程文件") || !text.contains("始终置顶") || !text.contains("Google 日历") || !text.contains("登录 Google") || !text.contains("导入桌面 OAuth JSON") || !text.contains(env!("CARGO_PKG_VERSION")) {
                             return Err(format!("第 {round} 次设置内容不完整：{text}"));
                         }
                         // 已打开时再次调用必须复用窗口，不能创建重复窗口。

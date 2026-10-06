@@ -1,3 +1,6 @@
+mod google;
+use std::sync::Arc;
+use tauri::Manager;
 mod tray;
 mod window;
 
@@ -10,9 +13,20 @@ pub fn run() {
         )
         .invoke_handler(tauri::generate_handler![
             window::open_settings,
-            window::set_widget_top
+            window::set_widget_top,
+            google::google_status,
+            google::google_configure,
+            google::google_connect,
+            google::google_cancel,
+            google::google_calendars,
+            google::google_select,
+            google::google_load,
+            google::google_disconnect
         ])
         .setup(|app| {
+            let service = Arc::new(google::GoogleService::new(app.path().app_data_dir()?)?);
+            app.manage(service.clone());
+            google::start_sync(service, app.handle().clone());
             tray::setup(app)?;
             Ok(())
         })

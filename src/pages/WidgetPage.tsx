@@ -42,7 +42,7 @@ export function WidgetPage() {
   useEffect(() => {
     if (!isTauri()) return;
     const pending = listen<string>("widget-action", (event) => {
-      if (event.payload === "refresh") void refresh();
+      if (event.payload === "refresh") void refresh(true);
       if (event.payload === "today" || event.payload === "week")
         setView(event.payload);
     });
@@ -97,7 +97,7 @@ export function WidgetPage() {
         <div className="toolbar" data-tauri-drag-region="false">
           <button
             className="icon-button"
-            onClick={() => void refresh()}
+            onClick={() => void refresh(true)}
             disabled={syncState === "syncing"}
             aria-label="重新加载课程"
           >
@@ -178,9 +178,9 @@ export function WidgetPage() {
               />
             </button>
           </div>
-          {error || windowError ? (
+          {error || windowError || snapshot?.warning ? (
             <p className="error-note" role="alert">
-              {error ?? windowError}
+              {error ?? windowError ?? snapshot?.warning}
             </p>
           ) : null}
           {view === "today" ? (

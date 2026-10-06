@@ -1,3 +1,6 @@
+import { isTauri } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import { GOOGLE_EVENT } from "./services/googleCalendarService";
 import {
   useLocalCalendarStore,
   LOCAL_CALENDAR_KEY,
@@ -54,6 +57,24 @@ export default function App() {
     };
     window.addEventListener("storage", update);
     return () => window.removeEventListener("storage", update);
+  }, []);
+  useEffect(() => {
+    if (!isTauri()) return;
+    let disposed = false;
+    let stop: (() => void) | undefined;
+    void listen(GOOGLE_EVENT, () => void useCalendarStore.getState().refresh())
+      .then((unlisten) => {
+        if (disposed) unlisten();
+        else stop = unlisten;
+      })
+      .catch(() => {
+        if (!disposed)
+          setNativeError("Google 同步通知未能连接，请重新打开应用。");
+      });
+    return () => {
+      disposed = true;
+      stop?.();
+    };
   }, []);
   return (
     <>

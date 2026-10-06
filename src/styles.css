@@ -887,3 +887,53 @@ input[type="checkbox"] {
 .course-sources .error-note {
   margin-top: 12px;
 }
+.google-fields {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+}
+.google-fields label {
+  display: grid;
+  gap: 7px;
+  font-size: 12px;
+}
+.google-fields input,
+.google-sources select {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 9px 11px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+}
+.google-sources .source-details p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.google-sources button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.google-sources .import-actions {
+  flex-wrap: wrap;
+}
+.google-sources .source-button {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 9px 11px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+}
+.google-sources .source-description {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.google-sources .source-notice {
+  font-size: 12px;
+  color: var(--accent);
+}

@@ -13,10 +13,12 @@ export function SyncStatus() {
             ? "示例课程 · 未连接 Google"
             : snapshot?.source === "local"
               ? "自定义课程 · 本地保存"
-              : "Google Calendar"}
+              : snapshot.source === "mixed"
+                ? "Google + 本地课程"
+                : "Google 日历"}
       </span>
       <button
-        onClick={() => void refresh()}
+        onClick={() => void refresh(true)}
         disabled={syncState === "syncing"}
         title="重新加载课程"
       >

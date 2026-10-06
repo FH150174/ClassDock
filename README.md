@@ -1,8 +1,8 @@
 # ClassDock
 
-轻量的 Windows 桌面课程表 Widget，使用 Tauri 2、React、TypeScript、Vite、Rust 和 Luxon。支持本地 ICS、CSV 导入和手动添加课程；Google Calendar 在线同步保留为后续数据来源。
+轻量的 Windows 桌面课程表 Widget，使用 Tauri 2、React、TypeScript、Vite、Rust 和 Luxon。支持 Google 账号登录、选择日历与自动同步，以及本地 ICS、CSV 导入和手动添加课程。
 
-**当前版本：0.2.0。本地课程导入已经可用，Google 账户登录与在线同步尚未接入。** 无需凭证即可使用本地课表。界面底部明确标记当前课程来源。
+**当前版本：0.3.0。已接入 Google 桌面 OAuth 登录、日历选择与在线同步。** 无需凭证即可使用本地课表。界面底部明确标记当前课程来源。
 
 ## 导入自己的课程
 
@@ -45,9 +45,9 @@ ICS 课程与内嵌时区年份限 1900–2100。ICS 支持带时间的课程、
 - 收起到托盘、关闭主窗时隐藏；窗口位置在正常退出后保存和恢复。
 - 独立设置窗口；仅前端预览时在当前页展示设置。
 - Mock 每次加载按当前周生成课程；倒计时每 30 秒更新，窗口重新获得焦点时更新。
-- Google 原始事件 → CourseEvent 转换及时间判断已实现，55 项自动测试（时间判断、ICS/CSV、本地保存）。
+- Google 桌面账号登录、日历选择、分页获取课程、每 10 分钟后台同步、手动同步及离线缓存；与 ICS/CSV 和手动课程合并。
 
-**下一阶段待实现：** OAuth、账户与日历选择、真实 API 请求、过去 7 天 / 未来 30 天缓存、后台自动同步、同步错误分类、托盘设置勾选状态、开机启动（默认关闭）、提醒。第一版不修改启动项。CSS 模糊仅用于面板内部的视觉效果；Windows 桌面背景的原生 Acrylic 和 WorkerW 桌面嵌入留待平台实测，不保证本版具有桌面背景模糊。
+**后续待实现：** 托盘设置勾选状态、开机启动和提醒；Windows 原生 Acrylic 与 WorkerW 桌面嵌入尚未实现。
 
 ## 环境要求
 
@@ -91,37 +91,28 @@ npm run tauri build
 产物：
 
 - `src-tauri/target/release/classdock.exe`：应用程序，可直接启动；需要系统 WebView2。
-- `src-tauri/target/release/bundle/nsis/ClassDock_0.2.0_x64-setup.exe`：中文 NSIS 安装程序。
+- `src-tauri/target/release/bundle/nsis/ClassDock_0.3.0_x64-setup.exe`：中文 NSIS 安装程序。
 
 无需安装包时：`npm run tauri build -- --no-bundle`。发布构建去掉控制台，优化体积；本版未配置代码签名。安装程序按 Tauri 默认机制处理缺失的 WebView2。代码和资源都在本地，生产前端无外部字体请求。
 
-## Google Cloud Console 配置（下一阶段）
+## Google 账号登录与导入
 
-下面是正式数据接入的准备工作，**当前版本不会读取 `.env` 或发起 OAuth**。
+1. 在 [Google Cloud Console](https://console.cloud.google.com/) 创建或选择项目，启用 **Google Calendar API**。
+2. 配置 OAuth 同意屏幕；处于测试状态时，将自己的 Google 账号添加为测试用户。
+3. 创建 **Desktop app / 桌面应用** OAuth 客户端，下载 JSON。
+4. 打开 ClassDock **设置 → Google 日历 → 配置 Google 登录**，导入 JSON，点击 **保存 OAuth 配置**。也可手动填写 Client ID 与签发的客户端密钥。
+5. 点击 **登录 Google**，在系统浏览器完成账号选择与只读授权，回到设置选择日历，再点击 **导入所选日历**。
+6. Google 课程与自定义课程合并显示。可立即同步、重新登录更换账号、退出连接；关闭主窗口到托盘后仍每 10 分钟同步。退出应用后停止同步。
 
-1. 在 [Google Cloud Console](https://console.cloud.google.com/) 创建或选择项目。
-2. 在 API 库启用 Google Calendar API。
-3. 在 Google Auth Platform 配置品牌信息、受众和数据访问；测试期间添加自己的 Google 账号为测试用户。
-4. 创建 OAuth 客户端，应用类型选择 **Desktop app / 桌面应用**，不要创建 Web application 客户端替代。
-5. 复制 `.env.example` 为 `.env`，填写自己项目的 `GOOGLE_CLIENT_ID`；如签发的桌面客户端要求 secret，则只在 Rust 后端读取 `GOOGLE_CLIENT_SECRET`。
-6. 不要将 `.env`、下载的 OAuth JSON 或 Token 提交到 Git；`.env` 已忽略。不要使用 `VITE_` 前缀承载凭证。
+不读取 `.env`，不需要将凭据写入源码。使用 PKCE S256、随机 state、127.0.0.1 随机回调端口，授权等待最多 3 分钟。只请求日历列表与事件读取权限；请求只获取所选日历，但 OAuth 读取权限涵盖账号可访问的日历。桌面流程见 [Google 官方文档](https://developers.google.com/identity/protocols/oauth2/native-app)。
 
-客户端 ID 标识应用而非用户。桌面客户端不能保密客户端 secret；PKCE、state 校验与安全 Token 存储才是本方案的重要保护。Google 的桌面流程允许 loopback 重定向，并将 client secret 标为可选字段：[Google 桌面 OAuth 文档](https://developers.google.com/identity/protocols/oauth2/native-app)。
+Client 配置与 Refresh Token 保存在 Windows 凭据管理器；Access Token 仅在 Rust 内存中。Token 不返回前端、不写缓存或日志。下载的 OAuth JSON 请保存在仓库外，勿提交 Git。客户端密钥不是桌面应用可保密的秘密。
 
-## 下一阶段 OAuth 与同步方案
+重复课程由 Google API 展开，获取范围为过去 8 天至未来 91 天，给界面过去 7 天/未来 90 天留时区余量。全天与取消事件忽略，异常事件提示计数。Google 最多 5000 节，合并后最多 10000 节，课程缓存最多 4 MB。选择新日历失败会保留旧日历；新账号连接使用不同缓存标识，旧账号缓存不会载入新连接。退出删除本机授权和 Google 缓存，保留 OAuth 配置与本地课程；撤销或文件清理失败会显示原因。
 
-实现顺序：
+断网、权限撤销、API 配额或缓存保存失败时保留上次成功课程及时间并显示提示。普通读取在失败后等待约 10 分钟再自动重试，手动同步可以立即重试。需要重新授权时点击重新登录。授权和同步期间其他操作会提示忙碌，授权可主动取消。
 
-1. Rust `auth.rs` 使用 Authorization Code + PKCE S256；生成随机 verifier 和 state，仅绑定 `127.0.0.1` 的随机端口；设置回调超时并只接收一次有效回调。
-2. 通过系统默认浏览器完成授权，避免内嵌 WebView 登录；回调严格验证 state 和 redirect URI，由 Rust 换取 Token。前端仅接收已登录状态。
-3. 只请求 `calendar.calendarlist.readonly` 和 `calendar.events.readonly`，分别用于可访问日历列表与事件读取；不请求写入权限。应用只获取选中日历的事件，但 Google 的事件读取授权范围仍涵盖账户可访问的日历，不能宣称 OAuth 授权只限选中日历。参见 [Calendar scopes](https://developers.google.com/workspace/calendar/api/auth)。
-4. Refresh Token 存入 Windows Credential Manager；Access Token 只保留在 Rust 内存；不写日志。授权取消或 refresh 失效时显示重新登录入口，保留可识别的离线缓存。退出登录清除授权和账户相关缓存。
-5. Rust `calendar.rs` 通过 HTTPS 获取分页 `calendarList.list` 和选中 Calendar 的 `events.list`。`singleEvents=true` 展开重复实例，`orderBy=startTime`，IANA 时区、明确时间窗口、字段裁剪和分页完整处理。
-6. 用现有 `parseGoogleEvents` 转换领域模型。全天/取消事件过滤，坏事件计数，保留 event ID、calendar ID、description 和 recurringEventId；Google 返回的偏移保留为绝对时刻，界面按系统本地时区显示。
-7. `cache.rs` 原子替换过去 7 天和未来 30 天只读缓存；缓存版本、所选日历 ID、范围与 lastSyncTime 显式保存。切换账户和日历时隔离缓存，避免显示错误来源。
-8. 默认 10 分钟同步，可选 5 / 10 / 15 / 30 / 60；Rust 后台计时保证隐藏窗口后同步仍工作，手动与自动请求串行，避免叠加。429/5xx 用有上限退避并尊重 Retry-After；断网继续显示上次成功缓存。
-9. 区分网络失败、401/refresh 失败、403权限撤销、404日历删除、配额限制和解析失败。下一阶段真实状态包括未登录、待选择日历、同步中、成功、离线、需要重新授权。当前示例模式不会伪造登录成功或 API 同步成功。
-10. 经真实 Google 测试后再完成 autostart 插件（默认关闭、仅用户主动开启）、托盘勾选项同步和提醒调度。
+0.3.0 已验证代码、模拟数据和 Windows 设置窗口；尚无用户 OAuth 配置，真实 Google 账号授权/API 联调需配置后完成。详细边界见 [Google 接入验证](docs/GOOGLE-OAUTH-0.3.0.md)。
 
 ## 项目目录
 
@@ -153,7 +144,7 @@ docs/               运行与验收记录
 - 今日课程按本地 `[当天午夜, 下一日午夜)` 相交查询；跨日课程在两天可见，正好午夜结束不会计入第二日。
 - 进行中的课程优先于未来课程；起始时刻算进行中，结束时刻不算。重叠课程默认显示开始最早的进行中课程。
 - 周从周一开始。DST 按日历日计算，不假定每天固定 24 小时。
-- Google 数据将在后续由服务端展开；本地 ICS 使用 ical.js，并对时区、截止、排除与例外时间统一按绝对时刻处理，复杂规则在迭代前验证。
+- Google 重复数据由 API 展开；本地 ICS 使用 ical.js，并对时区、截止、排除与例外时间统一按绝对时刻处理，复杂规则在迭代前验证。
 - 测试覆盖今日排序、进行中、未来课、明天课、无课程、起止边界、跨天、午夜、UTC、本地时区、DST、周分组、重复实例、全天过滤和坏事件。
 
 ## 常见问题
@@ -164,18 +155,18 @@ docs/               运行与验收记录
 
 **怎么添加自己的课程？** 在设置中导入 ICS / CSV 或手动添加。示例数据随当前周生成，仅供预览。
 
-**同步按钮为什么叫重新加载？** 当前没有连接 Google。按钮重新读取本地保存的来源并展开课程，或重新生成示例课程，不发起 Google 请求。
+**如何刷新？** 重新加载按钮会读取当前课程来源；使用 Google 时会强制同步。示例课程模式不请求 Google。
 
 **Rust 提示缺少 std 或格式化程序？** 检查安装是否完整，项目固定工具链后运行 `rustup toolchain install 1.97.1 --profile minimal --component rustfmt --component clippy`，再重试。C++ 链接失败时检查 Windows SDK 和 MSVC 工作负载。
 
 **1420 端口被占用？** 关闭本项目上一份 Vite；不要更改端口而忘记同步 `tauri.conf.json` 的 devUrl。
 
-**为什么没有 Google 登录按钮？** 按本轮先完成 Mock UI 的目标交付，OAuth 尚未实现。设置页明确展示状态，准备自己的 Desktop OAuth 客户端后即可进入下一阶段。
+**为什么 Google 登录按钮不可用？** 需先保存桌面 OAuth 配置，并在 Windows 桌面应用中使用；浏览器仅用于界面预览。
 
 ## 隐私
 
-当前无 Google API 请求、无遥测、无账户、无密码和 Token。设置保存在 WebView 本地存储，窗口位置由 window-state 插件写入 Tauri 应用数据目录；正式版计划只缓存所选日历必要的课程字段。课程 description 作为纯文本模型数据处理，不渲染 HTML。本地课程缓存包含个人日程，下一阶段提供退出登录时清除。本地文件原文与手动课程保存在 WebView 本地存储；移除来源可清除对应课程。清除应用数据会丢失本地课表，请保留原始文件。
+无遥测。Google 网络请求仅由 Rust 发往固定 Google HTTPS 端点，授权使用系统浏览器；课程备注按文本显示。Google 课程缓存包含个人日程，退出连接会清理；本地文件原文和手动课程保存在 WebView 本地存储，移除来源可清理对应课程。请保留原始文件，清除应用数据会丢失本地课表。窗口位置由 window-state 插件保存。
 
-## 验收边界
+## 验收记录
 
-本轮验收：原生 `tauri dev`、前端生产构建、时间测试、Windows exe 构建、Mock 今日/下一节/本周与基础桌面行为。全量最终验收中的真实 OAuth、真实日历选择、真实事件、离线缓存与周期同步需下一阶段完成；不能用示例成功代替真实账户验证。0.2.0 本地导入与原生设置回归见 [本地导入验收](docs/LOCAL-IMPORT-0.2.0.md)。此前执行证据见 [第一轮验收](docs/VALIDATION.md) 和 [0.1.1 窗口与滚动修复](docs/FIXES-0.1.1.md)、[0.1.2 设置窗口修复](docs/FIXES-0.1.2.md)。
+见 [Google 0.3.0](docs/GOOGLE-OAUTH-0.3.0.md)、[本地导入 0.2.0](docs/LOCAL-IMPORT-0.2.0.md)、[第一轮验收](docs/VALIDATION.md)、[窗口与滚动修复](docs/FIXES-0.1.1.md) 和 [设置窗口修复](docs/FIXES-0.1.2.md)。真实 Google 登录需要用户 OAuth 客户端和浏览器授权，不能用模拟测试宣称真实账户联调成功。

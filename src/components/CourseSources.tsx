@@ -153,7 +153,7 @@ export function CourseSources() {
         </button>
       </div>
       <p className="setting-help">
-        本地文件与手动课程一起显示，保存在这台电脑。Google 登录与同步仍待接入。
+        本地文件与手动课程一起显示，保存在这台电脑。也可在下方连接 Google 日历，与本地课程一起显示。
       </p>
       <label className="setting-label" htmlFor="calendar-file">
         选择课程文件（ICS / CSV）
