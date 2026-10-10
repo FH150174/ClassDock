@@ -1,6 +1,6 @@
 [package]
 name = "classdock"
-version = "0.3.0"
+version = "0.3.1"
 description = "Windows 桌面课程表 Widget"
 edition = "2021"
 rust-version = "1.90"
@@ -30,3 +30,6 @@ codegen-units = 1
 lto = true
 opt-level = "s"
 strip = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging", "Win32_UI_Shell"] }

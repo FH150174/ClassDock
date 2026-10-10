@@ -2,7 +2,7 @@
 
 轻量的 Windows 桌面课程表 Widget，使用 Tauri 2、React、TypeScript、Vite、Rust 和 Luxon。支持 Google 账号登录、选择日历与自动同步，以及本地 ICS、CSV 导入和手动添加课程。
 
-**当前版本：0.3.0。已接入 Google 桌面 OAuth 登录、日历选择与在线同步。** 无需凭证即可使用本地课表。界面底部明确标记当前课程来源。
+**当前版本：0.3.1。修复休眠唤醒后课程表固定位置丢失；支持 Google 桌面 OAuth 登录、日历选择与在线同步。** 无需凭证即可使用本地课表。界面底部明确标记当前课程来源。
 
 ## 导入自己的课程
 
@@ -42,7 +42,7 @@ ICS 课程与内嵌时区年份限 1900–2100。ICS 支持带时间的课程、
 - 深色、浅色、跟随系统；背景不透明度 55–100%。
 - 拖动整个顶部或日期区域；锁定位置；始终置顶；设置持久化。
 - 系统托盘：打开、重新加载课程、今日、本周、设置、退出。
-- 收起到托盘、关闭主窗时隐藏；窗口位置在正常退出后保存和恢复。
+- 收起到托盘、关闭主窗时隐藏；拖动结束后保存固定位置，启动、休眠唤醒和托盘显示时恢复；正常退出时再次保存。
 - 独立设置窗口；仅前端预览时在当前页展示设置。
 - Mock 每次加载按当前周生成课程；倒计时每 30 秒更新，窗口重新获得焦点时更新。
 - Google 桌面账号登录、日历选择、分页获取课程、每 10 分钟后台同步、手动同步及离线缓存；与 ICS/CSV 和手动课程合并。
@@ -91,7 +91,7 @@ npm run tauri build
 产物：
 
 - `src-tauri/target/release/classdock.exe`：应用程序，可直接启动；需要系统 WebView2。
-- `src-tauri/target/release/bundle/nsis/ClassDock_0.3.0_x64-setup.exe`：中文 NSIS 安装程序。
+- `src-tauri/target/release/bundle/nsis/ClassDock_0.3.1_x64-setup.exe`：中文 NSIS 安装程序。
 
 无需安装包时：`npm run tauri build -- --no-bundle`。发布构建去掉控制台，优化体积；本版未配置代码签名。安装程序按 Tauri 默认机制处理缺失的 WebView2。代码和资源都在本地，生产前端无外部字体请求。
 
@@ -128,7 +128,7 @@ src/
   App.tsx           主题与窗口路由
   styles.css        本地字体与浅深色设计变量
 src-tauri/
-  src/              lib.rs / main.rs / tray.rs / window.rs
+  src/              lib.rs / main.rs / tray.rs / window.rs / position.rs / google.rs
   capabilities/     本地窗口最小权限
   icons/            应用与托盘图标
   tauri.conf.json   透明窗、CSP、NSIS
@@ -151,7 +151,7 @@ docs/               运行与验收记录
 
 **看不到任务栏图标？** 主窗口作为 Widget 默认跳过任务栏，使用系统托盘重新打开。点右上角收起或关闭主窗后仍在托盘运行；退出请用托盘“退出 ClassDock”。
 
-**如何拖动？** 按住顶部任意空白、ClassDock 标识或日期区域即可拖动；刷新、设置和收起按钮仍正常点击。锁定后需在设置中关闭“锁定位置”。窗体不嵌入桌面 WorkerW，保持透明悬浮模式。
+**如何拖动？** 按住顶部任意空白、ClassDock 标识或日期区域即可拖动；刷新、设置和收起按钮仍正常点击。锁定后需在设置中关闭“锁定位置”。拖动结束后立即记录坐标，休眠唤醒、重启或从托盘显示会恢复。升级后若旧版没有保存到你需要的位置，请重新拖动一次，再按需锁定。显示器暂时断开时移到可见工作区，接回后恢复原位置。窗体不嵌入桌面 WorkerW，保持透明悬浮模式。
 
 **怎么添加自己的课程？** 在设置中导入 ICS / CSV 或手动添加。示例数据随当前周生成，仅供预览。
 
@@ -165,8 +165,8 @@ docs/               运行与验收记录
 
 ## 隐私
 
-无遥测。Google 网络请求仅由 Rust 发往固定 Google HTTPS 端点，授权使用系统浏览器；课程备注按文本显示。Google 课程缓存包含个人日程，退出连接会清理；本地文件原文和手动课程保存在 WebView 本地存储，移除来源可清理对应课程。请保留原始文件，清除应用数据会丢失本地课表。窗口位置由 window-state 插件保存。
+无遥测。Google 网络请求仅由 Rust 发往固定 Google HTTPS 端点，授权使用系统浏览器；课程备注按文本显示。Google 课程缓存包含个人日程，退出连接会清理；本地文件原文和手动课程保存在 WebView 本地存储，移除来源可清理对应课程。请保留原始文件，清除应用数据会丢失本地课表。主窗口固定位置独立保存在应用配置目录的 widget-position.json；仅记录坐标，不含课程或账号信息。旧版 window-state 位置会自动迁移。
 
 ## 验收记录
 
-见 [Google 0.3.0](docs/GOOGLE-OAUTH-0.3.0.md)、[本地导入 0.2.0](docs/LOCAL-IMPORT-0.2.0.md)、[第一轮验收](docs/VALIDATION.md)、[窗口与滚动修复](docs/FIXES-0.1.1.md) 和 [设置窗口修复](docs/FIXES-0.1.2.md)。真实 Google 登录需要用户 OAuth 客户端和浏览器授权，不能用模拟测试宣称真实账户联调成功。
+见 [位置恢复 0.3.1](docs/FIXES-0.3.1.md)、[Google 0.3.0](docs/GOOGLE-OAUTH-0.3.0.md)、[本地导入 0.2.0](docs/LOCAL-IMPORT-0.2.0.md)、[第一轮验收](docs/VALIDATION.md)、[窗口与滚动修复](docs/FIXES-0.1.1.md) 和 [设置窗口修复](docs/FIXES-0.1.2.md)。真实 Google 登录需要用户 OAuth 客户端和浏览器授权，不能用模拟测试宣称真实账户联调成功。

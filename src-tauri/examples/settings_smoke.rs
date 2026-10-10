@@ -8,6 +8,8 @@ use tauri::{Manager, State};
 
 #[path = "../src/google.rs"]
 mod google;
+#[path = "../src/position.rs"]
+mod position;
 #[path = "../src/window.rs"]
 mod window;
 
@@ -33,6 +35,7 @@ fn main() {
     let (loaded_tx, loaded_rx) = mpsc::channel();
     let (render_tx, render_rx) = mpsc::channel();
     tauri::Builder::default()
+        .plugin(position::init())
         .manage(RenderReport(Mutex::new(render_tx)))
         .invoke_handler(tauri::generate_handler![
             window::open_settings,
@@ -50,6 +53,7 @@ fn main() {
             let service = Arc::new(google::GoogleService::new(std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.cache/smoke-google"))?);
             google::start_sync(service.clone(), app.handle().clone());
             app.manage(service);
+            position::setup(app.handle(), std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.cache/smoke-settings-position"))?;
             window::show_widget(app.handle())?;
             app.get_webview_window("main").unwrap().hide()?;
             let handle = app.handle().clone();
@@ -62,9 +66,18 @@ fn main() {
                         handle.get_webview_window("main").ok_or("主窗口不存在")?
                             .eval("window.__TAURI_INTERNALS__.invoke('open_settings')")
                             .map_err(|e| e.to_string())?;
-                        loaded_rx.recv_timeout(Duration::from_secs(15))
-                            .map_err(|e| format!("第 {round} 次设置页未加载：{e}"))?;
-                        let settings = handle.get_webview_window("settings").ok_or("设置窗口不存在")?;
+                        let deadline = Instant::now() + Duration::from_secs(15);
+                        loop {
+                            let label = loaded_rx.recv_timeout(deadline.saturating_duration_since(Instant::now()))
+                                .map_err(|e| format!("第 {round} 次设置页未加载：{e}"))?;
+                            if label == "settings" { break; }
+                        }
+                        // WebView 加载完成通知可能早于 builder 注册窗口，等待注册后再读取。
+                        let settings = loop {
+                            if let Some(settings) = handle.get_webview_window("settings") { break settings; }
+                            if Instant::now() >= deadline { return Err("设置窗口未完成注册".into()); }
+                            thread::sleep(Duration::from_millis(20));
+                        };
                         // 只读取真实 React 页面，报告命令仅注册在测试程序中。
                         settings.eval(r#"
                             (() => {

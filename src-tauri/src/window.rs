@@ -6,6 +6,7 @@ static SETTINGS_WINDOW_LOCK: Mutex<()> = Mutex::new(());
 pub fn show_widget(app: &AppHandle) -> tauri::Result<()> {
     if let Some(window) = app.get_webview_window("main") {
         window.unminimize()?;
+        crate::position::restore(app)?;
         window.show()?;
         window.set_focus()?;
     }

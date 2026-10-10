@@ -349,7 +349,7 @@ dependencies = [
 
 [[package]]
 name = "classdock"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -363,6 +363,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-window-state",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
